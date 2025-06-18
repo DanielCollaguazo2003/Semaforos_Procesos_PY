@@ -1,30 +1,31 @@
-from multiprocessing import Process
+import multiprocessing
 import time
+from core.configuracion import CICLOS_TOTALES, TIEMPO_VERDE, TIEMPO_AMARILLO, VIAS_PARES
 
-class ControladorTrafico(Process):
-    def __init__(self, conexiones, ciclos=10):
+class ControladorTrafico(multiprocessing.Process):
+    def __init__(self, conexiones, barrier, queue_gui):
         super().__init__()
         self.conexiones = conexiones
-        self.ciclos = ciclos
+        self.barrier = barrier
+        self.queue_gui = queue_gui
+        self.vehiculos_cruzados = 0
 
     def run(self):
-        for ciclo in range(self.ciclos):
-            print(f"[Controlador] Ciclo {ciclo+1}: NORTE-SUR en verde")
-            self._cambiar_estados(["NORTE", "SUR"], "VERDE", ["ESTE", "OESTE"], "ROJO")
-            time.sleep(5)
-            self._cambiar_estados(["NORTE", "SUR"], "AMARILLO", [], "")
-            time.sleep(2)
+        for _ in range(CICLOS_TOTALES):
+            for par in VIAS_PARES:
+                self._activar(par, "VERDE")
+                self._esperar(TIEMPO_VERDE)
+                self._activar(par, "AMARILLO")
+                self._esperar(TIEMPO_AMARILLO)
+                self._activar(par, "ROJO")
+        self.queue_gui.put(("FINALIZADO", ""))
+    
+    def _activar(self, vias, estado):
+        for via in self.conexiones:
+            if via in vias:
+                self.conexiones[via].send(estado)
 
-            print(f"[Controlador] Ciclo {ciclo+1}: ESTE-OESTE en verde")
-            self._cambiar_estados(["ESTE", "OESTE"], "VERDE", ["NORTE", "SUR"], "ROJO")
-            time.sleep(5)
-            self._cambiar_estados(["ESTE", "OESTE"], "AMARILLO", [], "")
-            time.sleep(2)
-
-        print("[Controlador] Simulación finalizada.")
-
-    def _cambiar_estados(self, vias_verde, estado_verde, vias_rojo, estado_rojo):
-        for via in vias_verde:
-            self.conexiones[via].send(estado_verde)
-        for via in vias_rojo:
-            self.conexiones[via].send(estado_rojo)
+    def _esperar(self, segundos):
+        for _ in range(int(segundos / 0.1)):
+            self.barrier.wait()
+            time.sleep(0.1)

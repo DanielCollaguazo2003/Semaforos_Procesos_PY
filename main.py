@@ -1,36 +1,29 @@
-from multiprocessing import Process, Pipe, Barrier, Queue
-from tkinter import Tk
+import multiprocessing
+from core.configuracion import VIAS
 from core.semaforo import Semaforo
 from core.controlador import ControladorTrafico
-from gui.gui import InterfazSemaforos
+from gui.gui import GUI
 
 def main():
-    vias = ["NORTE", "SUR", "ESTE", "OESTE"]
-    conexiones_controlador = {}
-    conexiones_semaforos = {}
+    multiprocessing.set_start_method("spawn")
+    queue_gui = multiprocessing.Queue()
+    parent_conns, child_conns = {}, {}
 
-    for via in vias:
-        parent_conn, child_conn = Pipe()
-        conexiones_controlador[via] = parent_conn
-        conexiones_semaforos[via] = child_conn
+    for via in VIAS:
+        p, c = multiprocessing.Pipe()
+        parent_conns[via] = p
+        child_conns[via] = c
 
-    barrier = Barrier(parties=4)
-    queue_gui = Queue()
-
-    semaforos = []
-    for via in vias:
-        sem = Semaforo(via, conexiones_semaforos[via], barrier, queue_gui)
-        semaforos.append(sem)
-
-    controlador = ControladorTrafico(conexiones_controlador)
+    barrier = multiprocessing.Barrier(len(VIAS) + 1)
+    semaforos = [Semaforo(via, child_conns[via], barrier, queue_gui) for via in VIAS]
+    controlador = ControladorTrafico(parent_conns, barrier, queue_gui)
 
     for s in semaforos:
         s.start()
     controlador.start()
 
-    root = Tk()
-    app = InterfazSemaforos(root, queue_gui)
-    root.mainloop()
+    gui = GUI(queue_gui)
+    gui.start()
 
     controlador.join()
     for s in semaforos:
