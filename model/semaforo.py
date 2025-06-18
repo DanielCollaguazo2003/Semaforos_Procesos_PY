@@ -30,7 +30,7 @@ class Semaforo(Process):
             
             # Generar nuevo vehículo con control de población
             if (len(self.vehiculos_moviendo) < self.max_vehiculos_por_via and 
-                random.random() < 0.005):  # Probabilidad reducida
+                random.random() < 0.025):  # Probabilidad reducida
                 nuevo_vehiculo = self.generador.generar_vehiculo(self.nombre)
                 if nuevo_vehiculo:
                     self.vehiculos_moviendo.append(nuevo_vehiculo)
@@ -111,3 +111,15 @@ class Semaforo(Process):
         except:
             # Si el queue está lleno, saltear este envío
             pass
+
+        # En semaforo.py - agregar método de cambio cíclico interno
+        def _cambio_ciclico_interno(self):
+            estados = ["ROJO", "VERDE", "AMARILLO"]
+            self.estado_interno = estados[(estados.index(self.estado_interno) + 1) % 3]
+            return self.estado_interno
+
+        # Solicitar permiso al controlador
+        def _solicitar_permiso_paso(self):
+            if self.estado_interno == "VERDE":
+                self.pipe.send(f"SOLICITUD_PERMISO_{self.nombre}")
+                # Esperar respuesta del controlador

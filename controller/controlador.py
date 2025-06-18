@@ -44,3 +44,13 @@ class ControladorTrafico(Process):
             'ciclos': self.ciclos_completados
         }
         self.queue_gui.put(datos_controlador)
+
+    # En controlador.py - manejar solicitudes de permiso
+    def _manejar_solicitudes_permiso(self):
+        for via, conexion in self.conexiones.items():
+            if conexion.poll():
+                mensaje = conexion.recv()
+                if "SOLICITUD_PERMISO" in mensaje:
+                    # Evaluar si puede dar permiso
+                    permiso = self._evaluar_conflictos(via)
+                    conexion.send(f"PERMISO_{permiso}")
