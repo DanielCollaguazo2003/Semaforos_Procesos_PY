@@ -1,3 +1,4 @@
+
 # semaforo.py - Versión optimizada MANTENIENDO sincronización Barrier
 from multiprocessing import Process
 import time
@@ -47,7 +48,7 @@ class Semaforo(Process):
             self._procesar_vehiculos()
             
             # Enviar datos a GUI con throttling
-            if self.contador_frames % 2 == 0:  # Solo cada 2 frames
+            if self.contador_frames % 1 == 0:  # Solo cada 2 frames
                 self._enviar_datos_gui()
             
             # MANTENER SINCRONIZACIÓN BARRIER - CRUCIAL PARA LA PRÁCTICA
@@ -100,6 +101,7 @@ class Semaforo(Process):
             'estado': self.estado,
             'vehiculos_esperando': sum(1 for v in self.vehiculos_moviendo 
                                      if v.esta_en_zona_parada() and not v.puede_avanzar(self.estado)),
+            'vehiculos_cruzados': self.total_vehiculos_cruzados,  # AGREGAR ESTA LÍNEA
             'vehiculos_moviendo': [(v.posicion_x, v.posicion_y, v.color, v.id) 
                                  for v in self.vehiculos_moviendo]
         }
@@ -111,15 +113,3 @@ class Semaforo(Process):
         except:
             # Si el queue está lleno, saltear este envío
             pass
-
-        # En semaforo.py - agregar método de cambio cíclico interno
-        def _cambio_ciclico_interno(self):
-            estados = ["ROJO", "VERDE", "AMARILLO"]
-            self.estado_interno = estados[(estados.index(self.estado_interno) + 1) % 3]
-            return self.estado_interno
-
-        # Solicitar permiso al controlador
-        def _solicitar_permiso_paso(self):
-            if self.estado_interno == "VERDE":
-                self.pipe.send(f"SOLICITUD_PERMISO_{self.nombre}")
-                # Esperar respuesta del controlador

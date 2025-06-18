@@ -178,12 +178,14 @@ class InterfazSemaforos:
                             estado = datos['estado']
                             vehiculos_esperando = datos['vehiculos_esperando']
                             vehiculos_moviendo = datos['vehiculos_moviendo']
+                            vehiculos_cruzados = datos.get('vehiculos_cruzados', 0)  # AGREGAR ESTA LÍNEA
                             
                             # Actualizar semáforo
                             self._actualizar_semaforo(nombre, estado)
                             
                             # Actualizar estadísticas
                             self.estadisticas[nombre]['esperando'] = vehiculos_esperando
+                            self.estadisticas[nombre]['cruzados'] = vehiculos_cruzados  # AGREGAR ESTA LÍNEA
                             
                             # Actualizar vehículos con throttling
                             if contador % 1 == 0:  # Solo cada 2 iteraciones
