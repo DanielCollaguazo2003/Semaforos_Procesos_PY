@@ -1,5 +1,8 @@
-from multiprocessing import Pipe, Barrier, Queue
-from core.test_clases import SemaforoTest, ControladorTest
+from multiprocessing import Process, Pipe, Barrier, Queue
+from tkinter import Tk
+from core.semaforo import Semaforo
+from core.controlador import ControladorTrafico
+from gui.gui import InterfazSemaforos
 
 def main():
     vias = ["NORTE", "SUR", "ESTE", "OESTE"]
@@ -16,22 +19,23 @@ def main():
 
     semaforos = []
     for via in vias:
-        sem = SemaforoTest(via, conexiones_semaforos[via], barrier, queue_gui)
+        sem = Semaforo(via, conexiones_semaforos[via], barrier, queue_gui)
         semaforos.append(sem)
 
-    controlador = ControladorTest(conexiones_controlador)
+    controlador = ControladorTrafico(conexiones_controlador)
 
     for s in semaforos:
         s.start()
     controlador.start()
 
-    controlador.join()
+    root = Tk()
+    app = InterfazSemaforos(root, queue_gui)
+    root.mainloop()
 
+    controlador.join()
     for s in semaforos:
         s.terminate()
         s.join()
-
-    print("[MAIN] Fin de la prueba.")
 
 if __name__ == "__main__":
     main()
