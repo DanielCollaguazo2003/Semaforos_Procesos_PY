@@ -12,22 +12,18 @@ class InterfazSemaforos:
         self.root.title("Simulación de Tráfico - Cuenca")
         self.root.geometry("800x700")
         
-        # Frame principal
         main_frame = ttk.Frame(self.root)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Canvas para la simulación
         self.canvas = tk.Canvas(main_frame, width=500, height=500, bg="#f0f0f0")
         self.canvas.pack(side=tk.LEFT, padx=(0, 10))
         
-        # Panel de información
         self.info_frame = ttk.Frame(main_frame)
         self.info_frame.pack(side=tk.RIGHT, fill=tk.Y)
         
         self._crear_panel_info()
         self._dibujar_interseccion()
         
-        # Diccionario para almacenar elementos gráficos
         self.semaforos = {
             "NORTE": {"rojo": None, "amarillo": None, "verde": None},
             "SUR": {"rojo": None, "amarillo": None, "verde": None},
@@ -35,33 +31,27 @@ class InterfazSemaforos:
             "OESTE": {"rojo": None, "amarillo": None, "verde": None}
         }
         
-        # OPTIMIZACIONES GUI
-        self.vehiculos_canvas = {}  # Cambiar a dict para mejor gestión
-        self.ultimo_update_vehiculos = {}  # Tracking de actualizaciones
+        self.vehiculos_canvas = {} 
+        self.ultimo_update_vehiculos = {}
         self.estado_actual = "Iniciando..."
         self.ciclos_completados = 0
         self.estadisticas = {via: {"esperando": 0, "cruzados": 0} for via in ["NORTE", "SUR", "ESTE", "OESTE"]}
         
-        # Crear semáforos
         self._crear_semaforos()
         
-        # Hilo optimizado para actualizar GUI
         self.thread = threading.Thread(target=self._actualizar_gui_optimizado)
         self.thread.daemon = True
         self.thread.start()
         
-        # Actualizar información cada segundo
         self._actualizar_info()
         
         self.root.mainloop()
 
     def _crear_panel_info(self):
-        # Título
         titulo = ttk.Label(self.info_frame, text="SIMULACIÓN DE TRÁFICO", 
                           font=("Arial", 14, "bold"))
         titulo.pack(pady=(0, 10))
         
-        # Información del sistema
         ttk.Label(self.info_frame, text="Estado del Sistema:", 
                  font=("Arial", 10, "bold")).pack(anchor=tk.W)
         self.label_estado = ttk.Label(self.info_frame, text="Iniciando...")
@@ -72,7 +62,6 @@ class InterfazSemaforos:
         self.label_ciclos = ttk.Label(self.info_frame, text="0")
         self.label_ciclos.pack(anchor=tk.W, pady=(0, 10))
         
-        # Estadísticas por vía
         ttk.Label(self.info_frame, text="Estadísticas por Vía:", 
                  font=("Arial", 10, "bold")).pack(anchor=tk.W, pady=(10, 5))
         

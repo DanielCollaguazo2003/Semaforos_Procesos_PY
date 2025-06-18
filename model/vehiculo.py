@@ -13,12 +13,11 @@ class Vehiculo:
         self.tiempo_salida = None
         self.posicion_x = 0
         self.posicion_y = 0
-        self.velocidad = random.uniform(2, 30)  # Velocidad aleatoria más lenta
+        self.velocidad = random.uniform(2, 20) 
         self.color = random.choice(['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6'])
-        self.puede_moverse = False  # Nueva propiedad para controlar movimiento
-        self.en_interseccion = False  # Para saber si ya está en la intersección
+        self.puede_moverse = False  
+        self.en_interseccion = False 
         
-        # Posiciones iniciales según dirección
         self._establecer_posicion_inicial()
     
     def _establecer_posicion_inicial(self):
@@ -37,16 +36,13 @@ class Vehiculo:
     
     def puede_avanzar(self, estado_semaforo):
         """Determina si el vehículo puede moverse según el estado del semáforo"""
-        # Si ya está en la intersección, puede seguir moviéndose independientemente del semáforo
         if self.en_interseccion:
             return True
-        
-        # Si no está en la intersección, debe verificar el semáforo
         return estado_semaforo == "VERDE"
     
     def esta_en_zona_parada(self):
         """Determina si el vehículo está en la zona donde debe parar por el semáforo"""
-        zona_parada = 30  # Distancia antes de la intersección donde debe parar
+        zona_parada = 30
         
         if self.direccion == "NORTE" and self.posicion_y >= 190 - zona_parada and self.posicion_y < 190:
             return True
@@ -87,7 +83,7 @@ class Vehiculo:
         elif self.direccion == "OESTE":
             self.posicion_x += self.velocidad
         
-        return True  # Se movió
+        return True
     
     def ha_salido_de_pantalla(self):
         return (self.posicion_x < -20 or self.posicion_x > 520 or 
@@ -103,7 +99,7 @@ class GeneradorVehiculos:
     def __init__(self):
         self.contador_id = 1000
         self.ultima_generacion = {via: time.time() for via in ["NORTE", "SUR", "ESTE", "OESTE"]}
-        self.intervalo_generacion = 1.0  # Generar cada 3 segundos (menos frecuente)
+        self.intervalo_generacion = 1.0  
     
     def generar_vehiculo(self, direccion):
         ahora = time.time()

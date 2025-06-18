@@ -41,12 +41,10 @@ def main():
     vias = ["NORTE", "SUR", "ESTE", "OESTE"]
     procesos = {}
     conexiones = {}
-    barrier = Barrier(len(vias))  # MANTENER Barrier para sincronización
+    barrier = Barrier(len(vias)) 
     
-    # OPTIMIZACIÓN: Queue con límite para evitar acumulación
-    queue_gui = Queue(maxsize=50)  # Limitar tamaño del queue
+    queue_gui = Queue(maxsize=50)
     
-    # Datos compartidos para estadísticas
     manager = Manager()
     semaforos_data = manager.dict()
     for via in vias:
@@ -56,11 +54,9 @@ def main():
         })
     
     try:
-        # Iniciar GUI en proceso separado
         gui_process = Process(target=lanzar_gui, args=(queue_gui,))
         gui_process.start()
         
-        # Crear procesos de semáforos
         for via in vias:
             parent_conn, child_conn = Pipe()
             semaforo = Semaforo(via, child_conn, barrier, queue_gui)
@@ -68,7 +64,6 @@ def main():
             procesos[via] = semaforo
             conexiones[via] = parent_conn
         
-        # Crear y ejecutar controlador
         controlador = ControladorTrafico(conexiones, queue_gui)
         controlador.start()
         

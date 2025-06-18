@@ -11,7 +11,6 @@ class ControladorTrafico(Process):
 
     def run(self):
         while True:
-            # Ciclo NORTE-SUR
             print(f"[Controlador] Ciclo {self.ciclos_completados + 1}: NORTE-SUR en verde")
             self._enviar_estado_controlador("NORTE-SUR VERDE")
             self._cambiar_estados(["NORTE", "SUR"], "VERDE", ["ESTE", "OESTE"], "ROJO")
@@ -20,7 +19,6 @@ class ControladorTrafico(Process):
             self._cambiar_estados(["NORTE", "SUR"], "AMARILLO", [], "")
             time.sleep(2)
 
-            # Ciclo ESTE-OESTE
             print(f"[Controlador] Ciclo {self.ciclos_completados + 1}: ESTE-OESTE en verde")
             self._enviar_estado_controlador("ESTE-OESTE VERDE")
             self._cambiar_estados(["ESTE", "OESTE"], "VERDE", ["NORTE", "SUR"], "ROJO")

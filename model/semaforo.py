@@ -1,5 +1,3 @@
-
-# semaforo.py - Versión optimizada MANTENIENDO sincronización Barrier
 from multiprocessing import Process
 import time
 import random
@@ -10,7 +8,7 @@ class Semaforo(Process):
         super().__init__()
         self.nombre = nombre
         self.pipe = pipe_conn
-        self.barrier = barrier  # MANTENER Barrier para sincronización
+        self.barrier = barrier 
         self.queue_gui = queue_gui
         self.estado = "ROJO"
         self.vehiculos_esperando = []
@@ -18,25 +16,21 @@ class Semaforo(Process):
         self.generador = GeneradorVehiculos()
         self.total_vehiculos_cruzados = 0
         self.tiempos_espera = []
-        
-        # OPTIMIZACIONES SIN AFECTAR SINCRONIZACIÓN
-        self.max_vehiculos_por_via = 12  # Límite máximo de vehículos
+        self.max_vehiculos_por_via = 12  
         self.ultimo_envio_gui = 0
-        self.intervalo_gui = 0.1  # Enviar a GUI cada 100ms
+        self.intervalo_gui = 0.1
         self.contador_frames = 0
 
     def run(self):
         while True:
             self.contador_frames += 1
             
-            # Generar nuevo vehículo con control de población
             if (len(self.vehiculos_moviendo) < self.max_vehiculos_por_via and 
-                random.random() < 0.025):  # Probabilidad reducida
+                random.random() < 0.025):
                 nuevo_vehiculo = self.generador.generar_vehiculo(self.nombre)
                 if nuevo_vehiculo:
                     self.vehiculos_moviendo.append(nuevo_vehiculo)
             
-            # Recibir estado del controlador (no bloqueante)
             if self.pipe.poll():
                 try:
                     mensaje = self.pipe.recv()
@@ -44,36 +38,29 @@ class Semaforo(Process):
                 except:
                     pass
             
-            # Procesar vehículos eficientemente
             self._procesar_vehiculos()
             
-            # Enviar datos a GUI con throttling
-            if self.contador_frames % 1 == 0:  # Solo cada 2 frames
+            if self.contador_frames % 1 == 0:
                 self._enviar_datos_gui()
             
-            # MANTENER SINCRONIZACIÓN BARRIER - CRUCIAL PARA LA PRÁCTICA
             try:
                 self.barrier.wait()
             except:
-                pass  # Continuar si hay error en barrier
+                pass
             
-            time.sleep(0.05)  # Actualización suave
+            time.sleep(0.05) 
 
     def _procesar_vehiculos(self):
         """Procesamiento optimizado de vehículos"""
         vehiculos_activos = []
         vehiculos_esperando_count = 0
         
-        # Procesar en lotes para eficiencia
         for vehiculo in self.vehiculos_moviendo:
-            # Intentar mover el vehículo
             se_movio = vehiculo.mover(self.estado)
             
-            # Contar vehículos esperando
             if not se_movio:
                 vehiculos_esperando_count += 1
             
-            # Contar vehículos que cruzan (solo una vez)
             if (vehiculo.en_interseccion and 
                 not hasattr(vehiculo, 'ya_contado')):
                 vehiculo.tiempo_salida = time.time()
@@ -81,7 +68,6 @@ class Semaforo(Process):
                 self.total_vehiculos_cruzados += 1
                 vehiculo.ya_contado = True
             
-            # Mantener solo vehículos activos
             if not vehiculo.ha_salido_de_pantalla():
                 vehiculos_activos.append(vehiculo)
         
@@ -91,11 +77,9 @@ class Semaforo(Process):
         """Envío optimizado de datos a GUI"""
         tiempo_actual = time.time()
         
-        # Throttling: evitar envíos muy frecuentes
         if tiempo_actual - self.ultimo_envio_gui < self.intervalo_gui:
             return
         
-        # Preparar datos solo cuando sea necesario
         datos_gui = {
             'nombre': self.nombre,
             'estado': self.estado,
@@ -111,5 +95,4 @@ class Semaforo(Process):
             self.queue_gui.put_nowait(datos_gui)
             self.ultimo_envio_gui = tiempo_actual
         except:
-            # Si el queue está lleno, saltear este envío
             pass
